@@ -49,6 +49,29 @@ class AvailabilityListCreateView(generics.ListCreateAPIView):
 
         return queryset
 
+    """
+    Validate that the new availability does not overlap with existing availabilities for the tutor.
+    TODO: may be wiser to expand the overlapping availability
+    """
+    def perform_create(self, serializer):
+        tutor = serializer.validated_data['tutor']
+        start_time = serializer.validated_data['start_time']
+        duration = serializer.validated_data['duration']
+        end_time = start_time + timedelta(minutes=duration)
+
+        # Check for overlapping availabilities for the same tutor
+        overlapping_availabilities = Availability.objects.filter(
+            tutor=tutor,
+            start_time__lt=end_time,  # Starts before the end of the new availability
+            start_time__gte=start_time - timedelta(minutes=duration)  # Prevent overlaps before the new start time
+        )
+
+        if overlapping_availabilities.exists():
+            raise ValidationError("This availability overlaps with an existing one.")
+
+        # If no overlaps, save the availability
+        serializer.save()
+
 class AvailableTutorsView(APIView):
     """
     Get a list of tutors available for a given start_time and duration.
@@ -90,3 +113,7 @@ class AvailableTutorsView(APIView):
         serializer = TutorSerializer(available_tutors, many=True)
 
         return Response(serializer.data)
+
+class AvailabilityDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Availability.objects.all()
+    serializer_class = AvailabilitySerializer
