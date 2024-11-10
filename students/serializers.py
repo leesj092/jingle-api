@@ -8,9 +8,21 @@ class StudentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class EnrollmentSerializer(serializers.ModelSerializer):
-    student = serializers.PrimaryKeyRelatedField(queryset=Student.objects.all())
     tutor = serializers.PrimaryKeyRelatedField(queryset=Tutor.objects.all())
 
     class Meta:
         model = Enrollment
-        fields = ['id', 'student', 'tutor', 'start_time', 'duration']
+        fields = ['id', 'tutor', 'start_time', 'duration']
+
+    def create(self, validated_data):
+        # Ensure the authenticated user has a linked student profile
+        student = self.context['request'].user.student
+
+        # Add the student to the validated_data
+        enrollment = Enrollment.objects.create(
+            student=student,
+            tutor=validated_data['tutor'],
+            start_time=validated_data['start_time'],
+            duration=validated_data['duration'],
+        )
+        return enrollment

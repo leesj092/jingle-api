@@ -1,8 +1,12 @@
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from .models import Student, Enrollment
 from .serializers import StudentSerializer, EnrollmentSerializer
 from datetime import timedelta
-from rest_framework.exceptions import ValidationError
+from django.contrib.auth.models import User
 
 class StudentListCreateView(generics.ListCreateAPIView):
     queryset = Student.objects.all()
@@ -43,3 +47,37 @@ class EnrollmentListCreateView(generics.ListCreateAPIView):
 class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
+
+"""
+API to register a new student user.
+"""
+class StudentRegistrationView(APIView):
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+
+        if not username or not password:
+            return Response(
+                {"detail": "Username and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"detail": "Username already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create a new user
+        user = User.objects.create_user(username=username, password=password)
+
+        # Create and link a student profile
+        student = Student.objects.create(user=user)
+
+        return Response(
+            {
+                "id": student.id,
+                "username": user.username,
+            },
+            status=status.HTTP_201_CREATED,
+        )

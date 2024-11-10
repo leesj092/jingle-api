@@ -1,8 +1,12 @@
 from django.db import models
 from tutors.models import Tutor
+from django.contrib.auth.models import User
 
 class Student(models.Model):
-    name = models.CharField(max_length=100)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username if self.user else "Unlinked Student"
 
 class Enrollment(models.Model):
     student = models.ForeignKey(

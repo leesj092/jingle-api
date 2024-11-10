@@ -146,3 +146,146 @@ Include the Authorization: Bearer <access_token> header in your API requests.
 ### Tutors:
 - Cannot create overlapping availability slots.
 
+## Testing the API
+
+### (Optional) Reset the database:
+```
+python manage.py flush --no-input
+```
+
+### Create an admin user:
+```
+python manage.py createsuperuser
+```
+
+### Start the development server:
+```
+python manage.py runserver
+```
+
+### Obtain a JWT Token for Admin via:
+`POST /api/token/`
+or
+```
+curl -X POST "http://127.0.0.1:8000/api/token/" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "your_username",
+    "password": "your_password"
+}'
+```
+Save the access token.
+
+### Register a Tutor
+`POST /api/tutors/register/`
+or
+```
+curl -X POST "http://127.0.0.1:8000/api/tutors/register/" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "tutor1",
+    "password": "securepassword",
+    "name": "John Harvard"
+}'
+```
+
+### Obtain Tutor Token
+```
+curl -X POST "http://127.0.0.1:8000/api/token/" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "tutor1",
+    "password": "securepassword"
+}'
+```
+
+### List Tutors
+`GET /api/tutors/tutors/`
+or
+```curl -X GET "http://127.0.0.1:8000/api/tutors/tutors/" \
+-H "Authorization: Bearer token \
+-H "Content-Type: application/json"
+```
+
+### Create Tutor Availability
+```
+curl -X POST "http://127.0.0.1:8000/api/tutors/availability/" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json" \
+-d '{
+    "tutor": 1,
+    "start_time": "2023-11-05T10:00:00Z",
+    "duration": 60
+}'
+```
+
+### Query Available Slots
+```
+curl -X GET "http://127.0.0.1:8000/api/tutors/availability/?start_time=2023-11-05T10:30:00Z&duration=30" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json"
+```
+
+### Register a Student
+`POST /api/students/register/`
+or
+```
+curl -X POST "http://127.0.0.1:8000/api/students/register/" \
+-H "Authorization: Bearer admin_token" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "student1",
+    "password": "ringle"
+}'
+```
+
+### Get Student Token
+```
+curl -X POST "http://127.0.0.1:8000/api/token/" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "student1",
+    "password": "ringle"
+}'
+```
+
+### Query Available Tutors
+```
+curl -X GET "http://127.0.0.1:8000/api/tutors/available-tutors/?start_time=2023-11-05T10:30:00Z&duration=30" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json"
+```
+
+### Enroll a Student
+```
+curl -X POST "http://127.0.0.1:8000/api/students/enrollments/" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json" \
+-d '{
+    "tutor": 1,
+    "start_time": "2023-11-05T10:30:00Z",
+    "duration": 30
+}'
+```
+
+### View Student Enrollments based on authentication
+```
+curl -X GET "http://127.0.0.1:8000/api/students/enrollments/" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json"
+```
+
+### Delete an Enrollment
+```
+curl -X DELETE "http://127.0.0.1:8000/api/students/enrollments/1/" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json"
+```
+
+### Delete Tutor Availability
+```
+curl -X DELETE "http://127.0.0.1:8000/api/tutors/availability/1/" \
+-H "Authorization: Bearer your_access_token" \
+-H "Content-Type: application/json"
+```
+

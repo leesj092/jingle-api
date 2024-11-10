@@ -1,12 +1,15 @@
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import AllowAny
 from .models import Tutor, Availability
 from .serializers import TutorSerializer, AvailabilitySerializer
 from django.utils.dateparse import parse_datetime
 from datetime import timedelta
 from django.db.models import F, ExpressionWrapper, Func, DateTimeField
-from rest_framework.exceptions import ValidationError
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.contrib.auth.models import User
 
 class TutorListCreateView(generics.ListCreateAPIView):
     queryset = Tutor.objects.all()
@@ -117,3 +120,40 @@ class AvailableTutorsView(APIView):
 class AvailabilityDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Availability.objects.all()
     serializer_class = AvailabilitySerializer
+
+"""
+API to register a new tutor user.
+"""
+class TutorRegistrationView(APIView):
+    permission_classes = [AllowAny]  # Allow unrestricted access
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        name = request.data.get("name")
+
+        if not username or not password or not name:
+            return Response(
+                {"detail": "Username, password, and name are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if the user already exists
+        if User.objects.filter(username=username).exists():
+            return Response(
+                {"detail": "Username already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create the user and link them to a tutor
+        user = User.objects.create_user(username=username, password=password)
+        tutor = Tutor.objects.create(user=user, name=name)
+
+        return Response(
+            {
+                "id": tutor.id,
+                "username": user.username,
+                "name": tutor.name,
+            },
+            status=status.HTTP_201_CREATED,
+        )
