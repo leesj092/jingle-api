@@ -4,9 +4,10 @@ from django.contrib.auth.models import User
 
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="student_profile", null=True, blank=True)
+    name = models.CharField(max_length=255)
 
     def __str__(self):
-        return self.user.username if self.user else "Unlinked Student"
+        return self.user.username
 
 class Enrollment(models.Model):
     student = models.ForeignKey(

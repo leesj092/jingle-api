@@ -52,6 +52,8 @@ class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
 API to register a new student user.
 """
 class StudentRegistrationView(APIView):
+    permission_classes = [AllowAny]  # Allow unrestricted access
+
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")

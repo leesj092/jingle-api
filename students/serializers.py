@@ -16,13 +16,10 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Ensure the authenticated user has a linked student profile
-        student = self.context['request'].user.student
+        user = self.context['request'].user
 
-        # Add the student to the validated_data
-        enrollment = Enrollment.objects.create(
-            student=student,
-            tutor=validated_data['tutor'],
-            start_time=validated_data['start_time'],
-            duration=validated_data['duration'],
-        )
-        return enrollment
+        if not hasattr(user, 'student_profile'):
+            raise serializers.ValidationError("Authenticated user is not a student.")
+
+        validated_data['student'] = user.student_profile
+        return super().create(validated_data)

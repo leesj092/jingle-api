@@ -202,8 +202,9 @@ curl -X POST "http://127.0.0.1:8000/api/token/" \
 ### List Tutors
 `GET /api/tutors/tutors/`
 or
-```curl -X GET "http://127.0.0.1:8000/api/tutors/tutors/" \
--H "Authorization: Bearer token \
+```
+curl -X GET "http://127.0.0.1:8000/api/tutors/tutors/" \
+-H "Authorization: Bearer token" \
 -H "Content-Type: application/json"
 ```
 
